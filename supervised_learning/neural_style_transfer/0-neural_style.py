@@ -5,7 +5,10 @@ import tensorflow as tf
 
 
 if not tf.executing_eagerly():
-    tf.compat.v1.enable_eager_execution()
+    try:
+        tf.compat.v1.enable_eager_execution()
+    except Exception:
+        pass
 
 
 class NST:
@@ -56,8 +59,8 @@ class NST:
 
         height, width, _ = image.shape
         scale = 512 / max(height, width)
-        new_height = int(height * scale)
-        new_width = int(width * scale)
+        new_height = max(1, int(height * scale))
+        new_width = max(1, int(width * scale))
 
         image = tf.convert_to_tensor(image, dtype=tf.float32)
         image = tf.image.resize(
@@ -65,6 +68,6 @@ class NST:
             (new_height, new_width),
             method=tf.image.ResizeMethod.BICUBIC
         )
-        image = image / 255.0
+        image = tf.clip_by_value(image / 255.0, 0.0, 1.0)
 
         return tf.expand_dims(image, axis=0)
