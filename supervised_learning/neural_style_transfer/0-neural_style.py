@@ -4,6 +4,10 @@ import numpy as np
 import tensorflow as tf
 
 
+if not tf.executing_eagerly():
+	tf.compat.v1.enable_eager_execution()
+
+
 class NST:
 	"""Performs preprocessing for neural style transfer."""
 
@@ -36,9 +40,6 @@ class NST:
 		if (not isinstance(beta, (int, float)) or beta < 0):
 			raise TypeError('beta must be a non-negative number')
 
-		if not tf.executing_eagerly():
-			tf.compat.v1.enable_eager_execution()
-
 		self.style_image = self.scale_image(style_image)
 		self.content_image = self.scale_image(content_image)
 		self.alpha = alpha
@@ -55,14 +56,14 @@ class NST:
 
 		height, width, _ = image.shape
 		scale = 512 / max(height, width)
-		new_height = int(round(height * scale))
-		new_width = int(round(width * scale))
+		new_height = int(height * scale)
+		new_width = int(width * scale)
 
 		image = tf.convert_to_tensor(image, dtype=tf.float32)
 		image = tf.image.resize(
 			image,
 			(new_height, new_width),
-			method='bicubic'
+			method=tf.image.ResizeMethod.BICUBIC
 		)
 		image = image / 255.0
 
